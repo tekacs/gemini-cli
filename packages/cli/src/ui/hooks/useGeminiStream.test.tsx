@@ -384,6 +384,7 @@ describe('useGeminiStream', () => {
           () => 'vscode' as EditorType,
           () => {},
           () => Promise.resolve(),
+          () => {},
         );
       },
       {
@@ -519,6 +520,7 @@ describe('useGeminiStream', () => {
         () => 'vscode' as EditorType,
         () => {},
         () => Promise.resolve(),
+        () => {},
       ),
     );
 
@@ -986,6 +988,7 @@ describe('useGeminiStream', () => {
           () => 'vscode' as EditorType,
           () => {},
           () => Promise.resolve(),
+          () => {},
         ),
       );
 

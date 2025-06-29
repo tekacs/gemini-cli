@@ -132,6 +132,7 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
   const ctrlDTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [constrainHeight, setConstrainHeight] = useState<boolean>(true);
   const [showPrivacyNotice, setShowPrivacyNotice] = useState<boolean>(false);
+  const [turnCount, setTurnCount] = useState<number>(0);
 
   const openPrivacyNotice = useCallback(() => {
     setShowPrivacyNotice(true);
@@ -420,6 +421,9 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
     getPreferredEditor,
     onAuthError,
     performMemoryRefresh,
+    () => {
+      setTurnCount((prev) => prev + 1);
+    },
   );
   pendingHistoryItems.push(...pendingGeminiHistoryItems);
   const { elapsedTime, currentLoadingPhrase } =
@@ -428,12 +432,26 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
 
   const handleFinalSubmit = useCallback(
     (submittedValue: string) => {
+      const maxTurns = config.getMaxTurns();
+      if (maxTurns > 0 && turnCount >= maxTurns) {
+        addItem(
+          {
+            type: MessageType.INFO,
+            text: `Maximum number of turns (${maxTurns}) reached. Exiting.`,
+          },
+          Date.now(),
+        );
+        setTimeout(() => process.exit(0), 100);
+        return;
+      }
+
       const trimmedValue = submittedValue.trim();
       if (trimmedValue.length > 0) {
+        setTurnCount((prev) => prev + 1);
         submitQuery(trimmedValue);
       }
     },
-    [submitQuery],
+    [submitQuery, config, turnCount, addItem],
   );
 
   const logger = useLogger();

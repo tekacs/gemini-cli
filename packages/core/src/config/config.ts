@@ -126,6 +126,7 @@ export interface ConfigParameters {
   bugCommand?: BugCommandSettings;
   model: string;
   extensionContextFilePaths?: string[];
+  maxTurns?: number;
 }
 
 export class Config {
@@ -165,6 +166,7 @@ export class Config {
   private readonly model: string;
   private readonly extensionContextFilePaths: string[];
   private modelSwitchedDuringSession: boolean = false;
+  private readonly maxTurns: number;
   flashFallbackHandler?: FlashFallbackHandler;
 
   constructor(params: ConfigParameters) {
@@ -207,6 +209,7 @@ export class Config {
     this.bugCommand = params.bugCommand;
     this.model = params.model;
     this.extensionContextFilePaths = params.extensionContextFilePaths ?? [];
+    this.maxTurns = params.maxTurns ?? -1;
 
     if (params.contextFileName) {
       setGeminiMdFilename(params.contextFileName);
@@ -285,6 +288,10 @@ export class Config {
 
   setFlashFallbackHandler(handler: FlashFallbackHandler): void {
     this.flashFallbackHandler = handler;
+  }
+
+  getMaxTurns(): number {
+    return this.maxTurns;
   }
 
   getEmbeddingModel(): string {

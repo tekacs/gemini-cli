@@ -91,6 +91,7 @@ export const useGeminiStream = (
   getPreferredEditor: () => EditorType | undefined,
   onAuthError: () => void,
   performMemoryRefresh: () => Promise<void>,
+  onToolCallCompleted: () => void,
 ) => {
   const [initError, setInitError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -678,6 +679,7 @@ export const useGeminiStream = (
       );
 
       markToolsAsSubmitted(callIdsToMarkAsSubmitted);
+      onToolCallCompleted();
       submitQuery(mergePartListUnions(responsesToSend), {
         isContinuation: true,
       });
@@ -688,6 +690,7 @@ export const useGeminiStream = (
       markToolsAsSubmitted,
       geminiClient,
       performMemoryRefresh,
+      onToolCallCompleted,
     ],
   );
 
