@@ -10,6 +10,7 @@ import { Config } from '../config/config.js';
 import { spawn, execSync } from 'node:child_process';
 import { discoverMcpTools } from './mcp-client.js';
 import { DiscoveredMCPTool } from './mcp-tool.js';
+import { defaultSummarizer } from './summarizer.js';
 
 type ToolParams = Record<string, unknown>;
 
@@ -45,6 +46,7 @@ Signal: Signal number or \`(none)\` if no signal was received.
       parameterSchema,
       false, // isOutputMarkdown
       false, // canUpdateOutput
+      defaultSummarizer,
     );
   }
 

@@ -33,6 +33,7 @@ export interface ToolMessageProps extends IndividualToolCallDisplay {
 export const ToolMessage: React.FC<ToolMessageProps> = ({
   name,
   description,
+  summary,
   resultDisplay,
   status,
   availableTerminalHeight,
@@ -74,6 +75,11 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
         />
         {emphasis === 'high' && <TrailingIndicator />}
       </Box>
+      {summary && (
+        <Box paddingLeft={STATUS_INDICATOR_WIDTH} width="100%">
+          <Text color={Colors.Gray}>{summary}</Text>
+        </Box>
+      )}
       {resultDisplay && (
         <Box paddingLeft={STATUS_INDICATOR_WIDTH} width="100%" marginTop={1}>
           <Box flexDirection="column">

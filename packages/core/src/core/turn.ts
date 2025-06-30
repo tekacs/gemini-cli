@@ -70,6 +70,7 @@ export interface ToolCallResponseInfo {
   callId: string;
   responseParts: PartListUnion;
   resultDisplay: ToolResultDisplay | undefined;
+  summary?: string;
   error: Error | undefined;
 }
 

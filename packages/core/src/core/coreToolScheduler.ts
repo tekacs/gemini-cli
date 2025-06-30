@@ -148,6 +148,14 @@ export function convertToFunctionResponse(
     return createFunctionResponsePart(callId, toolName, contentToProcess);
   }
 
+  if (typeof contentToProcess === 'object' && 'summary' in contentToProcess) {
+    return createFunctionResponsePart(
+      callId,
+      toolName,
+      JSON.stringify(contentToProcess),
+    );
+  }
+
   if (Array.isArray(contentToProcess)) {
     const functionResponse = createFunctionResponsePart(
       callId,

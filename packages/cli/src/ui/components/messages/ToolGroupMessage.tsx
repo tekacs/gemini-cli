@@ -87,6 +87,7 @@ export const ToolGroupMessage: React.FC<ToolGroupMessageProps> = ({
                 callId={tool.callId}
                 name={tool.name}
                 description={tool.description}
+                summary={tool.summary}
                 resultDisplay={tool.resultDisplay}
                 status={tool.status}
                 confirmationDetails={tool.confirmationDetails}
