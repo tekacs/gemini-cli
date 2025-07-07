@@ -217,6 +217,7 @@ const createErrorResponse = (
     },
   },
   resultDisplay: error.message,
+  summary: undefined,
 });
 
 interface CoreToolSchedulerOptions {
@@ -357,6 +358,7 @@ export class CoreToolScheduler {
                 },
               },
               resultDisplay: undefined,
+              summary: undefined,
               error: undefined,
             },
             durationMs,
@@ -616,6 +618,7 @@ export class CoreToolScheduler {
               callId,
               responseParts: response,
               resultDisplay: toolResult.returnDisplay,
+              summary: scheduledCall.tool.summarizer?.(toolResult),
               error: undefined,
             };
             this.setStatusInternal(callId, 'success', successResponse);
