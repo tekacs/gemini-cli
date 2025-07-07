@@ -8,7 +8,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { loadCliConfig } from './config';
 import { Settings } from './settings';
 import { Extension } from './extension';
-import yargs from 'yargs/yargs';
 
 // Mock the yargs instance
 const mockYargs = {
