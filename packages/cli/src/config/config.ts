@@ -53,7 +53,7 @@ interface CliArgs {
   telemetryTarget: string | undefined;
   telemetryOtlpEndpoint: string | undefined;
   telemetryLogPrompts: boolean | undefined;
-  'max-turns': number | undefined;
+  maxTurns: number | undefined;
 }
 
 async function parseArguments(): Promise<CliArgs> {
@@ -132,7 +132,7 @@ async function parseArguments(): Promise<CliArgs> {
     .option('max-turns', {
       type: 'number',
       description: 'Maximum number of turns to run for',
-      default: -1,
+      default: 50,
     })
     .version(await getCliVersion()) // This will enable the --version flag based on package.json
     .alias('v', 'version')
@@ -251,7 +251,7 @@ export async function loadCliConfig(
     bugCommand: settings.bugCommand,
     model: argv.model!,
     extensionContextFilePaths,
-    maxTurns: argv['max-turns'],
+    maxTurns: argv.maxTurns,
   });
 }
 

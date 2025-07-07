@@ -61,9 +61,15 @@ export async function runNonInteractive(
   const chat = await geminiClient.getChat();
   const abortController = new AbortController();
   let currentMessages: Content[] = [{ role: 'user', parts: [{ text: input }] }];
-
+  let maxTurns = config.getMaxTurns();
+  let turnCount = 0;
   try {
     while (true) {
+      if (maxTurns > 0 && turnCount >= maxTurns) {
+        console.debug(`Max turns reached. Exiting.`, { maxTurns, turnCount });
+        return;
+      }
+      turnCount++;
       const functionCalls: FunctionCall[] = [];
 
       const responseStream = await chat.sendMessageStream({

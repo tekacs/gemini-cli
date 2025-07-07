@@ -520,7 +520,7 @@ describe('useGeminiStream', () => {
         () => 'vscode' as EditorType,
         () => {},
         () => Promise.resolve(),
-        () => {},
+        () => {}, // Added onToolCallCompleted argument
       ),
     );
 
@@ -585,6 +585,7 @@ describe('useGeminiStream', () => {
         () => 'vscode' as EditorType,
         () => {},
         () => Promise.resolve(),
+        () => {}, // Added onToolCallCompleted argument
       ),
     );
 
@@ -744,6 +745,7 @@ describe('useGeminiStream', () => {
         () => 'vscode' as EditorType,
         () => {},
         () => Promise.resolve(),
+        () => {}, // Added onToolCallCompleted argument
       ),
     );
 
@@ -988,7 +990,7 @@ describe('useGeminiStream', () => {
           () => 'vscode' as EditorType,
           () => {},
           () => Promise.resolve(),
-          () => {},
+          () => {}, // Added onToolCallCompleted argument
         ),
       );
 
@@ -1064,6 +1066,7 @@ describe('useGeminiStream', () => {
           () => 'vscode' as EditorType,
           () => {},
           mockPerformMemoryRefresh,
+          () => {}, // Added onToolCallCompleted argument
         ),
       );
 
@@ -1113,6 +1116,7 @@ describe('useGeminiStream', () => {
           () => 'vscode' as EditorType,
           () => {},
           () => Promise.resolve(),
+          () => {}, // Added onToolCallCompleted argument
         ),
       );
 
