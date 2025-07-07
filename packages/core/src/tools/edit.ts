@@ -18,7 +18,6 @@ import {
 import { SchemaValidator } from '../utils/schemaValidator.js';
 import { makeRelative, shortenPath } from '../utils/paths.js';
 import { isNodeError } from '../utils/errors.js';
-import { GeminiClient } from '../core/client.js';
 import { Config, ApprovalMode } from '../config/config.js';
 import { ensureCorrectEdit } from '../utils/editCorrector.js';
 import { DEFAULT_DIFF_OPTIONS } from './diffOptions.js';
@@ -72,15 +71,13 @@ export class EditTool
   implements ModifiableTool<EditToolParams>
 {
   static readonly Name = 'replace';
-  private readonly config: Config;
   private readonly rootDirectory: string;
-  private readonly client: GeminiClient;
 
   /**
    * Creates a new instance of the EditLogic
    * @param rootDirectory Root directory to ground this tool in.
    */
-  constructor(config: Config) {
+  constructor(private readonly config: Config) {
     super(
       EditTool.Name,
       'Edit',
@@ -123,9 +120,7 @@ Expectation for required parameters:
         type: 'object',
       },
     );
-    this.config = config;
     this.rootDirectory = path.resolve(this.config.getTargetDir());
-    this.client = config.getGeminiClient();
   }
 
   /**
@@ -236,9 +231,10 @@ Expectation for required parameters:
     } else if (currentContent !== null) {
       // Editing an existing file
       const correctedEdit = await ensureCorrectEdit(
+        params.file_path,
         currentContent,
         params,
-        this.client,
+        this.config.getGeminiClient(),
         abortSignal,
       );
       finalOldString = correctedEdit.params.old_string;
@@ -257,9 +253,12 @@ Expectation for required parameters:
           raw: `Failed to edit, 0 occurrences found for old_string in ${params.file_path}. No edits made. The exact text in old_string was not found. Ensure you're not escaping content incorrectly and check whitespace, indentation, and context. Use ${ReadFileTool.Name} tool to verify.`,
         };
       } else if (occurrences !== expectedReplacements) {
+        const occurenceTerm =
+          expectedReplacements === 1 ? 'occurrence' : 'occurrences';
+
         error = {
-          display: `Failed to edit, expected ${expectedReplacements} occurrence(s) but found ${occurrences}.`,
-          raw: `Failed to edit, Expected ${expectedReplacements} occurrences but found ${occurrences} for old_string in file: ${params.file_path}`,
+          display: `Failed to edit, expected ${expectedReplacements} ${occurenceTerm} but found ${occurrences}.`,
+          raw: `Failed to edit, Expected ${expectedReplacements} ${occurenceTerm} but found ${occurrences} for old_string in file: ${params.file_path}`,
         };
       }
     } else {

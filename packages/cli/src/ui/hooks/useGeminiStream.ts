@@ -32,6 +32,7 @@ import {
   HistoryItemWithoutId,
   HistoryItemToolGroup,
   MessageType,
+  SlashCommandProcessorResult,
   ToolCallStatus,
 } from '../types.js';
 import { isAtCommand } from '../utils/commandUtils.js';
@@ -51,7 +52,6 @@ import {
   TrackedCompletedToolCall,
   TrackedCancelledToolCall,
 } from './useReactToolScheduler.js';
-import { useSessionStats } from '../contexts/SessionContext.js';
 
 export function mergePartListUnions(list: PartListUnion[]): PartListUnion {
   const resultParts: PartListUnion = [];
@@ -84,9 +84,7 @@ export const useGeminiStream = (
   onDebugMessage: (message: string) => void,
   handleSlashCommand: (
     cmd: PartListUnion,
-  ) => Promise<
-    import('./slashCommandProcessor.js').SlashCommandActionReturn | boolean
-  >,
+  ) => Promise<SlashCommandProcessorResult | false>,
   shellModeActive: boolean,
   getPreferredEditor: () => EditorType | undefined,
   onAuthError: () => void,
@@ -102,7 +100,6 @@ export const useGeminiStream = (
     useStateAndRef<HistoryItemWithoutId | null>(null);
   const processedMemoryToolsRef = useRef<Set<string>>(new Set());
   const logger = useLogger();
-  const { startNewTurn, addUsage } = useSessionStats();
   const gitService = useMemo(() => {
     if (!config.getProjectRoot()) {
       return;
@@ -228,16 +225,10 @@ export const useGeminiStream = (
 
         // Handle UI-only commands first
         const slashCommandResult = await handleSlashCommand(trimmedQuery);
-        if (typeof slashCommandResult === 'boolean' && slashCommandResult) {
-          // Command was handled, and it doesn't require a tool call from here
-          return { queryToSend: null, shouldProceed: false };
-        } else if (
-          typeof slashCommandResult === 'object' &&
-          slashCommandResult.shouldScheduleTool
-        ) {
-          // Slash command wants to schedule a tool call (e.g., /memory add)
-          const { toolName, toolArgs } = slashCommandResult;
-          if (toolName && toolArgs) {
+
+        if (slashCommandResult) {
+          if (slashCommandResult.type === 'schedule_tool') {
+            const { toolName, toolArgs } = slashCommandResult;
             const toolCallRequest: ToolCallRequestInfo = {
               callId: `${toolName}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
               name: toolName,
@@ -246,7 +237,8 @@ export const useGeminiStream = (
             };
             scheduleToolCalls([toolCallRequest], abortSignal);
           }
-          return { queryToSend: null, shouldProceed: false }; // Handled by scheduling the tool
+
+          return { queryToSend: null, shouldProceed: false };
         }
 
         if (shellModeActive && handleShellCommand(trimmedQuery, abortSignal)) {
@@ -462,9 +454,6 @@ export const useGeminiStream = (
           case ServerGeminiEventType.ChatCompressed:
             handleChatCompressionEvent(event.value);
             break;
-          case ServerGeminiEventType.UsageMetadata:
-            addUsage(event.value);
-            break;
           case ServerGeminiEventType.ToolCallConfirmation:
           case ServerGeminiEventType.ToolCallResponse:
             // do nothing
@@ -487,7 +476,6 @@ export const useGeminiStream = (
       handleErrorEvent,
       scheduleToolCalls,
       handleChatCompressionEvent,
-      addUsage,
     ],
   );
 
@@ -515,10 +503,6 @@ export const useGeminiStream = (
 
       if (!shouldProceed || queryToSend === null) {
         return;
-      }
-
-      if (!options?.isContinuation) {
-        startNewTurn();
       }
 
       setIsResponding(true);
@@ -569,7 +553,6 @@ export const useGeminiStream = (
       setPendingHistoryItem,
       setInitError,
       geminiClient,
-      startNewTurn,
       onAuthError,
       config,
     ],
@@ -648,20 +631,20 @@ export const useGeminiStream = (
           const responsesToAdd = geminiTools.flatMap(
             (toolCall) => toolCall.response.responseParts,
           );
+          const combinedParts: Part[] = [];
           for (const response of responsesToAdd) {
-            let parts: Part[];
             if (Array.isArray(response)) {
-              parts = response;
+              combinedParts.push(...response);
             } else if (typeof response === 'string') {
-              parts = [{ text: response }];
+              combinedParts.push({ text: response });
             } else {
-              parts = [response];
+              combinedParts.push(response);
             }
-            geminiClient.addHistory({
-              role: 'user',
-              parts,
-            });
           }
+          geminiClient.addHistory({
+            role: 'user',
+            parts: combinedParts,
+          });
         }
 
         const callIdsToMarkAsSubmitted = geminiTools.map(
