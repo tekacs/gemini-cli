@@ -7,7 +7,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { loadCliConfig } from './config.js';
 import { Settings } from './settings.js';
-import { Extension } from './extension.js';
+import { Extension, filterActiveExtensions } from './extension.js';
 
 // Mock dependencies
 vi.mock('node:fs', () => ({
@@ -22,16 +22,25 @@ vi.mock('node:path');
 vi.mock('node:os');
 vi.mock('dotenv');
 vi.mock('./settings');
-vi.mock('./extension');
+vi.mock('./extension.js', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('./extension.js')>();
+  return {
+    ...mod,
+    filterActiveExtensions: vi.fn().mockReturnValue([]),
+    findAndParseJsonFiles: vi.fn().mockReturnValue([]),
+  };
+});
 vi.mock('../utils/version', () => ({
   getCliVersion: vi.fn().mockResolvedValue('1.0.0'),
 }));
+
 describe('loadCliConfig --max-turns', () => {
   let originalArgv: string[];
 
   beforeEach(() => {
     originalArgv = [...process.argv];
     vi.spyOn(process, 'cwd').mockReturnValue('/test/dir');
+    vi.mocked(filterActiveExtensions).mockReturnValue([]);
   });
 
   afterEach(() => {
