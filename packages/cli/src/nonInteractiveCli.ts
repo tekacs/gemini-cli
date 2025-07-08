@@ -70,6 +70,7 @@ export async function runNonInteractive(
         return;
       }
       turnCount++;
+      console.debug('turnCount', turnCount);
       const functionCalls: FunctionCall[] = [];
 
       const responseStream = await chat.sendMessageStream({

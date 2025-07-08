@@ -23,6 +23,7 @@ import { Settings } from './settings.js';
 import { Extension } from './extension.js';
 import { getCliVersion } from '../utils/version.js';
 import { loadSandboxConfig } from './sandboxConfig.js';
+import { MAX_TURNS } from '../ui/constants.js';
 
 // Simple console logger for now - replace with actual logger if available
 const logger = {
@@ -132,7 +133,7 @@ async function parseArguments(): Promise<CliArgs> {
     .option('max-turns', {
       type: 'number',
       description: 'Maximum number of turns to run for',
-      default: 50,
+      default: MAX_TURNS,
     })
     .version(await getCliVersion()) // This will enable the --version flag based on package.json
     .alias('v', 'version')
@@ -263,7 +264,7 @@ export async function loadCliConfig(
     bugCommand: settings.bugCommand,
     model: argv.model!,
     extensionContextFilePaths,
-    maxTurns: argv.maxTurns,
+    maxTurns: argv.maxTurns ?? MAX_TURNS,
   });
 }
 

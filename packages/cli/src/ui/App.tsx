@@ -68,10 +68,10 @@ import { useTextBuffer } from './components/shared/text-buffer.js';
 import * as fs from 'fs';
 import { UpdateNotification } from './components/UpdateNotification.js';
 import { checkForUpdates } from './utils/updateCheck.js';
-import ansiEscapes from 'ansi-escapes';
 import { OverflowProvider } from './contexts/OverflowContext.js';
 import { ShowMoreLines } from './components/ShowMoreLines.js';
 import { PrivacyNotice } from './privacy/PrivacyNotice.js';
+import ansiEscapes from 'ansi-escapes';
 
 const CTRL_EXIT_PROMPT_DURATION_MS = 1000;
 
@@ -89,6 +89,7 @@ export const AppWrapper = (props: AppProps) => (
 
 const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
   useBracketedPaste();
+  const [turnCount, setTurnCount] = useState<number>(0);
   const [updateMessage, setUpdateMessage] = useState<string | null>(null);
   const { stdout } = useStdout();
 
@@ -106,12 +107,27 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
   const [staticNeedsRefresh, setStaticNeedsRefresh] = useState(false);
   const [staticKey, setStaticKey] = useState(0);
   const refreshStatic = useCallback(() => {
+    stdout.write(ansiEscapes.clearTerminal);
     setStaticKey((prev) => prev + 1);
-  }, []);
+  }, [setStaticKey, stdout]);
 
-  const onNewHistoryItem = useCallback(() => {
-    setStaticNeedsRefresh(true);
-  }, []);
+  const onToolCallCompleted = useCallback(() => {
+    setTurnCount((prevTurnCount) => {
+      const newTurnCount = prevTurnCount + 1;
+      const maxTurns = config.getMaxTurns();
+      if (maxTurns > 0 && newTurnCount >= maxTurns) {
+        addItem(
+          {
+            type: MessageType.INFO,
+            text: `Maximum number of turns (${maxTurns}) reached. Exiting.`,
+          },
+          Date.now(),
+        );
+        setTimeout(() => process.exit(0), 100);
+      }
+      return newTurnCount;
+    });
+  }, [config, addItem]);
 
   const [geminiMdFileCount, setGeminiMdFileCount] = useState<number>(0);
   const [debugMessage, setDebugMessage] = useState<string>('');
@@ -135,7 +151,6 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
   const ctrlDTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [constrainHeight, setConstrainHeight] = useState<boolean>(true);
   const [showPrivacyNotice, setShowPrivacyNotice] = useState<boolean>(false);
-  const [turnCount, setTurnCount] = useState<number>(0);
 
   const openPrivacyNotice = useCallback(() => {
     setShowPrivacyNotice(true);
@@ -409,7 +424,13 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
   }, [openAuthDialog, setAuthError]);
 
   const geminiClient = config.getGeminiClient();
-  const { streamingState, submitQuery, initError, pendingHistoryItems: pendingGeminiHistoryItems, thought } = useGeminiStream(
+  const {
+    streamingState,
+    submitQuery,
+    initError,
+    pendingHistoryItems: pendingGeminiHistoryItems,
+    thought,
+  } = useGeminiStream(
     geminiClient,
     history,
     addItem,
@@ -421,7 +442,7 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
     getPreferredEditor,
     onAuthError,
     performMemoryRefresh,
-    onNewHistoryItem,
+    onToolCallCompleted,
   );
   pendingHistoryItems.push(...pendingGeminiHistoryItems);
   const { elapsedTime, currentLoadingPhrase } =
@@ -445,10 +466,11 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
 
       const trimmedValue = submittedValue.trim();
       if (trimmedValue.length > 0) {
+        setTurnCount((prev) => prev + 1);
         submitQuery(trimmedValue);
       }
     },
-    [submitQuery, config, turnCount, addItem],
+    [submitQuery, config, turnCount, addItem, setTurnCount],
   );
 
   const logger = useLogger();
@@ -532,15 +554,6 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
       clearTimeout(handler);
     };
   }, [terminalWidth, terminalHeight, refreshStatic]);
-
-  const streamingStateRef = useRef(streamingState);
-  useEffect(() => {
-    const wasNotIdle = streamingStateRef.current !== StreamingState.Idle;
-    if (wasNotIdle && streamingState === StreamingState.Idle) {
-      setTurnCount((prev) => prev + 1);
-    }
-    streamingStateRef.current = streamingState;
-  }, [streamingState]);
 
   useEffect(() => {
     if (streamingState === StreamingState.Idle && staticNeedsRefresh) {

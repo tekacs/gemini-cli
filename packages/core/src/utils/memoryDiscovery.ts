@@ -273,10 +273,6 @@ function concatenateInstructions(
     .join('\n\n');
 }
 
-/**
- * Loads hierarchical GEMINI.md files and concatenates their content.
- * This function is intended for use by the server.
- */
 export async function loadServerHierarchicalMemory(
   currentWorkingDirectory: string,
   debugMode: boolean,
