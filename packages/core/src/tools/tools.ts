@@ -109,7 +109,7 @@ export abstract class BaseTool<
     readonly name: string,
     readonly displayName: string,
     readonly description: string,
-    readonly parameterSchema: Record<string, unknown>,
+    readonly parameterSchema: Schema,
     readonly isOutputMarkdown: boolean = true,
     readonly canUpdateOutput: boolean = false,
     readonly summarizer: Summarizer = defaultSummarizer,
@@ -122,7 +122,7 @@ export abstract class BaseTool<
     return {
       name: this.name,
       description: this.description,
-      parameters: this.parameterSchema as Schema,
+      parameters: this.parameterSchema,
     };
   }
 
@@ -206,10 +206,19 @@ export interface FileDiff {
 export interface ToolEditConfirmationDetails {
   type: 'edit';
   title: string;
-  onConfirm: (outcome: ToolConfirmationOutcome) => Promise<void>;
+  onConfirm: (
+    outcome: ToolConfirmationOutcome,
+    payload?: ToolConfirmationPayload,
+  ) => Promise<void>;
   fileName: string;
   fileDiff: string;
   isModifying?: boolean;
+}
+
+export interface ToolConfirmationPayload {
+  // used to override `modifiedProposedContent` for modifiable tools in the
+  // inline modify flow
+  newContent: string;
 }
 
 export interface ToolExecuteConfirmationDetails {
