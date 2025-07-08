@@ -216,7 +216,7 @@ export class Config {
     this.bugCommand = params.bugCommand;
     this.model = params.model;
     this.extensionContextFilePaths = params.extensionContextFilePaths ?? [];
-    this.maxTurns = params.maxTurns ?? -1;
+    this.maxTurns = params.maxTurns ?? 50;
 
     if (params.contextFileName) {
       setGeminiMdFilename(params.contextFileName);
