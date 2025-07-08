@@ -106,9 +106,12 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
   const [staticNeedsRefresh, setStaticNeedsRefresh] = useState(false);
   const [staticKey, setStaticKey] = useState(0);
   const refreshStatic = useCallback(() => {
-    stdout.write(ansiEscapes.clearTerminal);
     setStaticKey((prev) => prev + 1);
-  }, [setStaticKey, stdout]);
+  }, []);
+
+  const onNewHistoryItem = useCallback(() => {
+    setStaticNeedsRefresh(true);
+  }, []);
 
   const [geminiMdFileCount, setGeminiMdFileCount] = useState<number>(0);
   const [debugMessage, setDebugMessage] = useState<string>('');
@@ -405,14 +408,9 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
     openAuthDialog();
   }, [openAuthDialog, setAuthError]);
 
-  const {
-    streamingState,
-    submitQuery,
-    initError,
-    pendingHistoryItems: pendingGeminiHistoryItems,
-    thought,
-  } = useGeminiStream(
-    config.getGeminiClient(),
+  const geminiClient = config.getGeminiClient();
+  const { streamingState, submitQuery, initError, pendingHistoryItems: pendingGeminiHistoryItems, thought } = useGeminiStream(
+    geminiClient,
     history,
     addItem,
     setShowHelp,
@@ -423,9 +421,7 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
     getPreferredEditor,
     onAuthError,
     performMemoryRefresh,
-    () => {
-      setTurnCount((prev) => prev + 1);
-    },
+    onNewHistoryItem,
   );
   pendingHistoryItems.push(...pendingGeminiHistoryItems);
   const { elapsedTime, currentLoadingPhrase } =
@@ -449,7 +445,6 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
 
       const trimmedValue = submittedValue.trim();
       if (trimmedValue.length > 0) {
-        setTurnCount((prev) => prev + 1);
         submitQuery(trimmedValue);
       }
     },
@@ -537,6 +532,15 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
       clearTimeout(handler);
     };
   }, [terminalWidth, terminalHeight, refreshStatic]);
+
+  const streamingStateRef = useRef(streamingState);
+  useEffect(() => {
+    const wasNotIdle = streamingStateRef.current !== StreamingState.Idle;
+    if (wasNotIdle && streamingState === StreamingState.Idle) {
+      setTurnCount((prev) => prev + 1);
+    }
+    streamingStateRef.current = streamingState;
+  }, [streamingState]);
 
   useEffect(() => {
     if (streamingState === StreamingState.Idle && staticNeedsRefresh) {
