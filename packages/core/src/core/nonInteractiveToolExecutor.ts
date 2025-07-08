@@ -70,7 +70,7 @@ export async function executeToolCall(
     const summary = tool.summarizer
       ? tool.summarizer(toolResult)
       : JSON.stringify(toolResult.llmContent);
-
+    console.debug('yolo: summarize tool call', summary);
     const durationMs = Date.now() - startTime;
     logToolCall(config, {
       'event.name': 'tool_call',
@@ -91,7 +91,6 @@ export async function executeToolCall(
       callId: toolCallRequest.callId,
       responseParts: response,
       resultDisplay: toolResult.returnDisplay,
-      summary,
       error: undefined,
     };
   } catch (e) {

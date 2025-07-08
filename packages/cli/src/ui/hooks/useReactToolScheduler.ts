@@ -249,7 +249,6 @@ export function mapToDisplay(
             ...baseDisplayProperties,
             status: mapCoreStatusToDisplayStatus(trackedCall.status),
             resultDisplay: trackedCall.response.resultDisplay,
-            summary: trackedCall.response.summary,
             confirmationDetails: undefined,
           };
         case 'error':

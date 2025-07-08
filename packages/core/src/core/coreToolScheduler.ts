@@ -150,14 +150,6 @@ export function convertToFunctionResponse(
     return createFunctionResponsePart(callId, toolName, contentToProcess);
   }
 
-  if (typeof contentToProcess === 'object' && 'summary' in contentToProcess) {
-    return createFunctionResponsePart(
-      callId,
-      toolName,
-      JSON.stringify(contentToProcess),
-    );
-  }
-
   if (Array.isArray(contentToProcess)) {
     const functionResponse = createFunctionResponsePart(
       callId,
@@ -219,7 +211,6 @@ const createErrorResponse = (
     },
   },
   resultDisplay: error.message,
-  summary: undefined,
 });
 
 interface CoreToolSchedulerOptions {
@@ -360,7 +351,6 @@ export class CoreToolScheduler {
                 },
               },
               resultDisplay: undefined,
-              summary: undefined,
               error: undefined,
             },
             durationMs,
@@ -671,12 +661,11 @@ export class CoreToolScheduler {
               callId,
               toolResult.llmContent,
             );
-
+            console.debug('summarize tool call', scheduledCall.tool.summarizer?.(toolResult));
             const successResponse: ToolCallResponseInfo = {
               callId,
               responseParts: response,
               resultDisplay: toolResult.returnDisplay,
-              summary: scheduledCall.tool.summarizer?.(toolResult),
               error: undefined,
             };
             console.log('successResponse', successResponse);
