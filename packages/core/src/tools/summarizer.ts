@@ -22,7 +22,7 @@ export type Summarizer = (result: ToolResult) => string;
  */
 export const defaultSummarizer: Summarizer = (result) => {
   if (typeof result.llmContent === 'string') {
-    return result.llmContent.slice(0, 1);
+    return result.llmContent.slice(0, 10);
   }
-  return JSON.stringify(result.llmContent).slice(0, 1);
+  return JSON.stringify(result.llmContent).slice(0, 10);
 };

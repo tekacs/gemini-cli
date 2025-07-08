@@ -621,6 +621,7 @@ export class CoreToolScheduler {
               summary: scheduledCall.tool.summarizer?.(toolResult),
               error: undefined,
             };
+            console.log('successResponse', successResponse);
             this.setStatusInternal(callId, 'success', successResponse);
           })
           .catch((executionError: Error) => {
