@@ -34,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   const artWidth = getAsciiArtWidth(displayTitle);
   const versionString = `v${version}`;
-  const showVersion = version.includes('nightly');
+  const isNightly = version.includes('nightly');
 
   return (
     <Box
@@ -51,7 +51,7 @@ export const Header: React.FC<HeaderProps> = ({
       ) : (
         <Text>{displayTitle}</Text>
       )}
-      {showVersion && (
+      {isNightly && (
         <Box width="100%" flexDirection="row" justifyContent="flex-end">
           <Gradient colors={Colors.GradientColors}>
             <Text>v{versionString}</Text>

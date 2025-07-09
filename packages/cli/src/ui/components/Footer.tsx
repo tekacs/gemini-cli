@@ -42,12 +42,12 @@ export const Footer: React.FC<FooterProps> = ({
 }) => {
   const limit = tokenLimit(model);
   const percentage = promptTokenCount / limit;
-  const showNightlyBranding = version.includes('nightly');
+  const isNightly = version.includes('nightly');
 
   return (
     <Box marginTop={1} justifyContent="space-between" width="100%">
       <Box>
-        {showNightlyBranding ? (
+        {isNightly ? (
           <Gradient colors={Colors.GradientColors}>
             <Text>
               {shortenPath(tildeifyPath(targetDir), 70)}
