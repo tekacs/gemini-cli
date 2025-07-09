@@ -656,19 +656,19 @@ export class CoreToolScheduler {
               return;
             }
 
+            const tool_result_summary = scheduledCall.tool.summarizer?.(toolResult);
             const response = convertToFunctionResponse(
               toolName,
               callId,
               toolResult.llmContent,
             );
-            console.debug('summarize tool call', scheduledCall.tool.summarizer?.(toolResult));
             const successResponse: ToolCallResponseInfo = {
               callId,
               responseParts: response,
-              resultDisplay: toolResult.returnDisplay,
+              resultDisplay: tool_result_summary,
               error: undefined,
             };
-            console.log('successResponse', successResponse);
+
             this.setStatusInternal(callId, 'success', successResponse);
           })
           .catch((executionError: Error) => {
