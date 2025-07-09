@@ -34,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   const artWidth = getAsciiArtWidth(displayTitle);
   const versionString = `v${version}`;
-  const versionPadding = Math.max(0, artWidth - versionString.length);
+  const showVersion = version.includes('nightly');
 
   return (
     <Box
@@ -51,15 +51,13 @@ export const Header: React.FC<HeaderProps> = ({
       ) : (
         <Text>{displayTitle}</Text>
       )}
-      <Box marginLeft={versionPadding}>
-        {Colors.GradientColors ? (
+      {showVersion && (
+        <Box width="100%" flexDirection="row" justifyContent="flex-end">
           <Gradient colors={Colors.GradientColors}>
-            <Text>{versionString}</Text>
+            <Text>v{versionString}</Text>
           </Gradient>
-        ) : (
-          <Text>{versionString}</Text>
-        )}
-      </Box>
+        </Box>
+      )}
     </Box>
   );
 };
