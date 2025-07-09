@@ -854,6 +854,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
               config.getDebugMode() || config.getShowMemoryUsage()
             }
             promptTokenCount={sessionStats.lastPromptTokenCount}
+            version={version}
           />
         </Box>
       </Box>
