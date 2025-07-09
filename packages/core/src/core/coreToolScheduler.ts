@@ -646,7 +646,7 @@ export class CoreToolScheduler {
 
         scheduledCall.tool
           .execute(scheduledCall.request.args, signal, liveOutputCallback)
-          .then((toolResult: ToolResult) => {
+          .then(async (toolResult: ToolResult) => {
             if (signal.aborted) {
               this.setStatusInternal(
                 callId,
@@ -656,16 +656,37 @@ export class CoreToolScheduler {
               return;
             }
 
-            const tool_result_summary = scheduledCall.tool.summarizer?.(toolResult);
+            let resultForDisplay: ToolResult = toolResult;
+            let summary: string | undefined;
+            if (scheduledCall.tool.summarizer) {
+              console.log('summarizing tool result');
+              try {
+                summary = await scheduledCall.tool.summarizer(
+                  toolResult,
+                  this.config.getGeminiClient(),
+                  signal,
+                );
+                if (scheduledCall.tool?.shouldSummarizeDisplay) {
+                  console.log('displaying summary', summary);
+                  resultForDisplay = {
+                    ...toolResult,
+                    returnDisplay: summary,
+                  };
+                }
+              } catch (e) {
+                console.error('Error summarizing tool result:', e);
+              }
+            }``
+
             const response = convertToFunctionResponse(
               toolName,
               callId,
-              toolResult.llmContent,
+              summary ? [summary] : toolResult.llmContent,
             );
             const successResponse: ToolCallResponseInfo = {
               callId,
               responseParts: response,
-              resultDisplay: tool_result_summary,
+              resultDisplay: resultForDisplay.returnDisplay,
               error: undefined,
             };
 

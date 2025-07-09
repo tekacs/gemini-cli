@@ -68,7 +68,11 @@ export async function executeToolCall(
     );
 
     const summary = tool.summarizer
-      ? tool.summarizer(toolResult)
+      ? tool.summarizer(
+          toolResult,
+          config.getGeminiClient(),
+          effectiveAbortSignal,
+        )
       : JSON.stringify(toolResult.llmContent);
     console.debug('yolo: summarize tool call', summary);
     const durationMs = Date.now() - startTime;
