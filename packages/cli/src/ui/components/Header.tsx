@@ -14,11 +14,13 @@ import { getAsciiArtWidth } from '../utils/textUtils.js';
 interface HeaderProps {
   customAsciiArt?: string; // For user-defined ASCII art
   terminalWidth: number; // For responsive logo
+  version: string;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   customAsciiArt,
   terminalWidth,
+  version,
 }) => {
   let displayTitle;
   const widthOfLongLogo = getAsciiArtWidth(longAsciiLogo);
@@ -31,6 +33,8 @@ export const Header: React.FC<HeaderProps> = ({
   }
 
   const artWidth = getAsciiArtWidth(displayTitle);
+  const versionString = `v${version}`;
+  const versionPadding = Math.max(0, artWidth - versionString.length);
 
   return (
     <Box
@@ -38,6 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
       alignItems="flex-start"
       width={artWidth}
       flexShrink={0}
+      flexDirection="column"
     >
       {Colors.GradientColors ? (
         <Gradient colors={Colors.GradientColors}>
@@ -46,6 +51,15 @@ export const Header: React.FC<HeaderProps> = ({
       ) : (
         <Text>{displayTitle}</Text>
       )}
+      <Box marginLeft={versionPadding}>
+        {Colors.GradientColors ? (
+          <Gradient colors={Colors.GradientColors}>
+            <Text>{versionString}</Text>
+          </Gradient>
+        ) : (
+          <Text>{versionString}</Text>
+        )}
+      </Box>
     </Box>
   );
 };

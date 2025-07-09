@@ -83,6 +83,7 @@ interface AppProps {
   config: Config;
   settings: LoadedSettings;
   startupWarnings?: string[];
+  version: string;
 }
 
 export const AppWrapper = (props: AppProps) => (
@@ -91,7 +92,7 @@ export const AppWrapper = (props: AppProps) => (
   </SessionStatsProvider>
 );
 
-const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
+const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   useBracketedPaste();
   const [updateMessage, setUpdateMessage] = useState<string | null>(null);
   const { stdout } = useStdout();
@@ -611,7 +612,7 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
           key={staticKey}
           items={[
             <Box flexDirection="column" key="header">
-              <Header terminalWidth={terminalWidth} />
+              <Header terminalWidth={terminalWidth} version={version} />
               {!settings.merged.hideTips && <Tips config={config} />}
             </Box>,
             ...history.map((h) => (
