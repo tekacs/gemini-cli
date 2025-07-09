@@ -54,7 +54,7 @@ export const Header: React.FC<HeaderProps> = ({
       {isNightly && (
         <Box width="100%" flexDirection="row" justifyContent="flex-end">
           <Gradient colors={Colors.GradientColors}>
-            <Text>v{versionString}</Text>
+            <Text>{versionString}</Text>
           </Gradient>
         </Box>
       )}
