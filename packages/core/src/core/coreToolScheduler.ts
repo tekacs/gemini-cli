@@ -659,15 +659,18 @@ export class CoreToolScheduler {
             let resultForDisplay: ToolResult = toolResult;
             let summary: string | undefined;
             if (scheduledCall.tool.summarizer) {
-              console.log('summarizing tool result');
               try {
+                const toolSignal = new AbortController();
                 summary = await scheduledCall.tool.summarizer(
                   toolResult,
                   this.config.getGeminiClient(),
-                  signal,
+                  toolSignal.signal,
                 );
+                if (toolSignal.signal.aborted) {
+                  console.debug('aborted summarizing tool result');
+                  return;
+                }
                 if (scheduledCall.tool?.shouldSummarizeDisplay) {
-                  console.log('displaying summary', summary);
                   resultForDisplay = {
                     ...toolResult,
                     returnDisplay: summary,
@@ -676,8 +679,7 @@ export class CoreToolScheduler {
               } catch (e) {
                 console.error('Error summarizing tool result:', e);
               }
-            }``
-
+            }
             const response = convertToFunctionResponse(
               toolName,
               callId,

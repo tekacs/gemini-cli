@@ -490,7 +490,6 @@ Process Group PGID: Process group started or \`(none)\``,
         // returnDisplayMessage will remain empty, which is fine.
       }
     }
-
     return { llmContent, returnDisplay: returnDisplayMessage };
   }
 }

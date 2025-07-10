@@ -5,6 +5,14 @@
  */
 
 import { ToolResult } from '../tools/tools.js';
+import {
+  Content,
+  GenerateContentConfig,
+  GenerateContentResponse,
+} from '@google/genai';
+import { GeminiClient } from '../core/client.js';
+import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
+import { PartListUnion } from '@google/genai';
 
 /**
  * A function that summarizes the result of a tool execution.
@@ -12,7 +20,11 @@ import { ToolResult } from '../tools/tools.js';
  * @param result The result of the tool execution.
  * @returns The summary of the result.
  */
-export type Summarizer = (result: ToolResult, geminiClient: GeminiClient, abortSignal: AbortSignal) => Promise<string>;
+export type Summarizer = (
+  result: ToolResult,
+  geminiClient: GeminiClient,
+  abortSignal: AbortSignal,
+) => Promise<string>;
 
 /**
  * The default summarizer for tool results.
@@ -22,21 +34,13 @@ export type Summarizer = (result: ToolResult, geminiClient: GeminiClient, abortS
  * @param abortSignal The abort signal to use for summarization.
  * @returns The summary of the result.
  */
-export const defaultSummarizer: Summarizer = (result: ToolResult, geminiClient: GeminiClient, abortSignal: AbortSignal) => {
-  return Promise.resolve(JSON.stringify(result.llmContent));
-};
+export const defaultSummarizer: Summarizer = (
+  result: ToolResult,
+  _geminiClient: GeminiClient,
+  _abortSignal: AbortSignal,
+) => Promise.resolve(JSON.stringify(result.llmContent));
 
-
-import {
-  Content,
-  GenerateContentConfig,
-  SchemaUnion,
-  Type,
-} from '@google/genai';
-import { GeminiClient } from '../core/client.js';
-import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
-import { Part, PartListUnion } from '@google/genai';
-
+// TODO: Move both these functions to utils
 function partToString(part: PartListUnion): string {
   if (!part) {
     return '';
@@ -53,11 +57,26 @@ function partToString(part: PartListUnion): string {
   return '';
 }
 
+function getResponseText(response: GenerateContentResponse): string | null {
+  if (response.candidates && response.candidates.length > 0) {
+    const candidate = response.candidates[0];
+    if (
+      candidate.content &&
+      candidate.content.parts &&
+      candidate.content.parts.length > 0
+    ) {
+      return candidate.content.parts
+        .filter((part) => part.text)
+        .map((part) => part.text)
+        .join('');
+    }
+  }
+  return null;
+}
+
 const toolOutputSummarizerModel = DEFAULT_GEMINI_FLASH_MODEL;
 const toolOutputSummarizerConfig: GenerateContentConfig = {
-  thinkingConfig: {
-    thinkingBudget: 0,
-  },
+  maxOutputTokens: 2000,
 };
 
 const SUMMARIZE_TOOL_OUTPUT_TEMPLATE = `Summarize the following tool output to be a maximum of {maxLength} characters. The summary should be concise and capture the main points of the tool output.
@@ -74,14 +93,12 @@ Text to summarize:
 Return the summary string which should first contain an overall summarization of text followed by the full stack trace of errors and warnings in the tool output.
 `;
 
-
-export const llmSummarizer: Summarizer = (result, geminiClient, abortSignal) => {
-  return summarizeToolOutput(
+export const llmSummarizer: Summarizer = (result, geminiClient, abortSignal) =>
+  summarizeToolOutput(
     partToString(result.llmContent),
     geminiClient,
     abortSignal,
   );
-};
 
 export async function summarizeToolOutput(
   textToSummarize: string,
@@ -97,7 +114,6 @@ export async function summarizeToolOutput(
     String(maxLength),
   ).replace('{textToSummarize}', textToSummarize);
 
-  console.log("going to summarize tool output")
   const contents: Content[] = [{ role: 'user', parts: [{ text: prompt }] }];
 
   try {
@@ -105,9 +121,9 @@ export async function summarizeToolOutput(
       contents,
       toolOutputSummarizerConfig,
       abortSignal,
-    )) as unknown as string;
-    console.log("summarized tool output", parsedResponse)
-    return parsedResponse;
+      toolOutputSummarizerModel,
+    )) as unknown as GenerateContentResponse;
+    return getResponseText(parsedResponse) || textToSummarize;
   } catch (error) {
     console.error('Failed to summarize tool output.', error);
     return textToSummarize;

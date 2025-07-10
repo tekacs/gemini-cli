@@ -77,7 +77,9 @@ describe('summarizers', () => {
     it('should call generateContent if text is longer than maxLength', async () => {
       const longText = 'This is a very long text.'.repeat(200);
       const summary = 'This is a summary.';
-      (mockGeminiClient.generateContent as Mock).mockResolvedValue(summary);
+      (mockGeminiClient.generateContent as Mock).mockResolvedValue({
+        candidates: [{ content: { parts: [{ text: summary }] } }],
+      });
 
       const result = await summarizeToolOutput(
         longText,
@@ -113,23 +115,13 @@ describe('summarizers', () => {
     it('should construct the correct prompt for summarization', async () => {
       const longText = 'This is a very long text.'.repeat(200);
       const summary = 'This is a summary.';
-      (mockGeminiClient.generateContent as Mock).mockResolvedValue(summary);
+      (mockGeminiClient.generateContent as Mock).mockResolvedValue({
+        candidates: [{ content: { parts: [{ text: summary }] } }],
+      });
 
       await summarizeToolOutput(longText, mockGeminiClient, abortSignal, 1000);
 
-      const expectedPrompt = `Summarize the following tool output to be a maximum of 1000 characters. The summary should be concise and capture the main points of the tool output.
-
-The summarization should be done based on the content that is provided. Here are the basic rules to follow:
-1. If the text is a directory listing or any output that is structural, use the history of the conversation to understand the context. Using this context try to understand what information we need from the tool output and return that as a response.
-2. If the text is text content and there is nothing structural that we need, summarize the text.
-3. If the text is the output of a shell command, use the history of the conversation to understand the context. Using this context try to understand what information we need from the tool output and return a summarization along with the stack trace of any error within the <error></error> tags. The stack trace should be complete and not truncated. If there are warnings, you should include them in the summary within <warning></warning> tags.
-
-
-Text to summarize:
-"${longText}"
-
-Return the summary string which should first contain an overall summarization of text followed by the full stack trace of errors and warnings in the tool output.
-`;
+      const expectedPrompt = `Summarize the following tool output to be a maximum of 1000 characters. The summary should be concise and capture the main points of the tool output. The summarization should be done based on the content that is provided. Here are the basic rules to follow:\n1. If the text is a directory listing or any output that is structural, use the history of the conversation to understand the context. Using this context try to understand what information we need from the tool output and return that as a response.\n2. If the text is text content and there is nothing structural that we need, summarize the text.\n3. If the text is the output of a shell command, use the history of the conversation to understand the context. Using this context try to understand what information we need from the tool output and return a summarization along with the stack trace of any error within the <error></error> tags. The stack trace should be complete and not truncated. If there are warnings, you should include them in the summary within <warning></warning> tags.\n\n\nText to summarize:\n${longText}\n\n Return the summary string which should first contain an overall summarization of text followed by the full stack trace of errors and warnings in the tool output.`;
       const calledWith = (mockGeminiClient.generateContent as Mock).mock
         .calls[0];
       const contents = calledWith[0];
@@ -144,7 +136,9 @@ Return the summary string which should first contain an overall summarization of
         returnDisplay: '',
       };
       const summary = 'This is a summary.';
-      (mockGeminiClient.generateContent as Mock).mockResolvedValue(summary);
+      (mockGeminiClient.generateContent as Mock).mockResolvedValue({
+        candidates: [{ content: { parts: [{ text: summary }] } }],
+      });
 
       const result = await llmSummarizer(
         toolResult,
@@ -163,7 +157,9 @@ Return the summary string which should first contain an overall summarization of
         returnDisplay: '',
       };
       const summary = 'This is a summary.';
-      (mockGeminiClient.generateContent as Mock).mockResolvedValue(summary);
+      (mockGeminiClient.generateContent as Mock).mockResolvedValue({
+        candidates: [{ content: { parts: [{ text: summary }] } }],
+      });
 
       const result = await llmSummarizer(
         toolResult,
