@@ -174,7 +174,7 @@ export async function main() {
     // Do oauth before app renders to make copying the link possible.
     await getOauthClient(
       settings.merged.selectedAuthType,
-      config.getNoBrowser(),
+      config
     );
   }
 

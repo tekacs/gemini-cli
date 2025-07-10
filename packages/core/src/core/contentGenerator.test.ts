@@ -12,9 +12,13 @@ import {
 } from './contentGenerator.js';
 import { createCodeAssistContentGenerator } from '../code_assist/codeAssist.js';
 import { GoogleGenAI } from '@google/genai';
+import { Config } from '../config/config.js';
 
 vi.mock('../code_assist/codeAssist.js');
 vi.mock('@google/genai');
+
+const mockConfig = {
+} as unknown as Config;
 
 describe('createContentGenerator', () => {
   it('should create a CodeAssistContentGenerator', async () => {
@@ -25,7 +29,7 @@ describe('createContentGenerator', () => {
     const generator = await createContentGenerator({
       model: 'test-model',
       authType: AuthType.LOGIN_WITH_GOOGLE,
-    });
+    }, mockConfig);
     expect(createCodeAssistContentGenerator).toHaveBeenCalled();
     expect(generator).toBe(mockGenerator);
   });
@@ -39,7 +43,7 @@ describe('createContentGenerator', () => {
       model: 'test-model',
       apiKey: 'test-api-key',
       authType: AuthType.USE_GEMINI,
-    });
+    }, mockConfig);
     expect(GoogleGenAI).toHaveBeenCalledWith({
       apiKey: 'test-api-key',
       vertexai: undefined,
