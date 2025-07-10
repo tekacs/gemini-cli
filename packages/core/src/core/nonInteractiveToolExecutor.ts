@@ -40,6 +40,7 @@ export async function executeToolCall(
       duration_ms: durationMs,
       success: false,
       error: error.message,
+      prompt_id: toolCallRequest.prompt_id,
     });
     // Ensure the response structure matches what the API expects for an error
     return {
@@ -83,6 +84,7 @@ export async function executeToolCall(
       function_args: toolCallRequest.args,
       duration_ms: durationMs,
       success: true,
+      prompt_id: toolCallRequest.prompt_id,
     });
 
     const response = convertToFunctionResponse(
@@ -108,6 +110,7 @@ export async function executeToolCall(
       duration_ms: durationMs,
       success: false,
       error: error.message,
+      prompt_id: toolCallRequest.prompt_id,
     });
     return {
       callId: toolCallRequest.callId,
