@@ -14,15 +14,15 @@ This is the recommended way for end-users to install Gemini CLI. It involves dow
 
 - **Global install:**
 
-   ```bash
-   npm install -g @google/gemini-cli
-   ```
+  ```bash
+  npm install -g @google/gemini-cli
+  ```
 
-   Then, run the CLI from anywhere:
+  Then, run the CLI from anywhere:
 
-   ```bash
-   gemini
-   ```
+  ```bash
+  gemini
+  ```
 
 - **NPX execution:**
 
