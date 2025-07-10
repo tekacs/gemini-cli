@@ -8,6 +8,7 @@ import { execSync, spawn } from 'child_process';
 
 export type EditorType =
   | 'vscode'
+  | 'vscode-insiders'
   | 'vscodium'
   | 'windsurf'
   | 'cursor'
@@ -18,6 +19,7 @@ export type EditorType =
 function isValidEditorType(editor: string): editor is EditorType {
   return [
     'vscode',
+    'vscode-insiders',
     'vscodium',
     'windsurf',
     'cursor',
@@ -46,6 +48,7 @@ function commandExists(cmd: string): boolean {
 
 const editorCommands: Record<EditorType, { win32: string; default: string }> = {
   vscode: { win32: 'code.cmd', default: 'code' },
+  'vscode-insiders': { win32: 'code.cmd', default: 'code-insiders' },
   vscodium: { win32: 'codium.cmd', default: 'codium' },
   windsurf: { win32: 'windsurf', default: 'windsurf' },
   cursor: { win32: 'cursor', default: 'cursor' },

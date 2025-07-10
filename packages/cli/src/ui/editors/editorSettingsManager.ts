@@ -19,6 +19,7 @@ export interface EditorDisplay {
 export const EDITOR_DISPLAY_NAMES: Record<EditorType, string> = {
   zed: 'Zed',
   vscode: 'VS Code',
+  'vscode-insiders': 'VS Code Insiders',
   vscodium: 'VSCodium',
   windsurf: 'Windsurf',
   cursor: 'Cursor',
@@ -33,6 +34,7 @@ class EditorSettingsManager {
     const editorTypes: EditorType[] = [
       'zed',
       'vscode',
+      'vscode-insiders',
       'vscodium',
       'windsurf',
       'cursor',
