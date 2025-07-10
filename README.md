@@ -30,8 +30,11 @@ With the Gemini CLI you can:
 
    ```bash
    npm install -g @google/gemini-cli
+   ```
 
-   # Now you can run the CLI from anywhere
+   Then, run the CLI from anywhere:
+
+   ```bash
    gemini
    ```
 
