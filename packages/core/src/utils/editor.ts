@@ -48,7 +48,7 @@ function commandExists(cmd: string): boolean {
 
 const editorCommands: Record<EditorType, { win32: string; default: string }> = {
   vscode: { win32: 'code.cmd', default: 'code' },
-  'vscode-insiders': { win32: 'code.cmd', default: 'code-insiders' },
+  'vscode-insiders': { win32: 'code-insiders.cmd', default: 'code-insiders' },
   vscodium: { win32: 'codium.cmd', default: 'codium' },
   windsurf: { win32: 'windsurf', default: 'windsurf' },
   cursor: { win32: 'cursor', default: 'cursor' },
