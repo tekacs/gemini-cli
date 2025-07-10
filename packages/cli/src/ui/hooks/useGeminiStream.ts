@@ -54,6 +54,7 @@ import {
   TrackedCancelledToolCall,
 } from './useReactToolScheduler.js';
 import { useSessionStats } from '../contexts/SessionContext.js';
+import { useLoopBreaker } from './useLoopBreaker.js';
 
 export function mergePartListUnions(list: PartListUnion[]): PartListUnion {
   const resultParts: PartListUnion = [];
@@ -81,6 +82,7 @@ export const useGeminiStream = (
   geminiClient: GeminiClient,
   history: HistoryItem[],
   addItem: UseHistoryManagerReturn['addItem'],
+  setAddItemListener: UseHistoryManagerReturn['setAddItemListener'],
   setShowHelp: React.Dispatch<React.SetStateAction<boolean>>,
   config: Config,
   onDebugMessage: (message: string) => void,
@@ -178,8 +180,8 @@ export const useGeminiStream = (
     return StreamingState.Idle;
   }, [isResponding, toolCalls]);
 
-  useInput((_input, key) => {
-    if (streamingState === StreamingState.Responding && key.escape) {
+  const cancelRequest = useCallback(
+    (reason: string) => {
       if (turnCancelledRef.current) {
         return;
       }
@@ -191,14 +193,37 @@ export const useGeminiStream = (
       addItem(
         {
           type: MessageType.INFO,
-          text: 'Request cancelled.',
+          text: reason,
         },
         Date.now(),
       );
       setPendingHistoryItem(null);
       setIsResponding(false);
+    },
+    [addItem, pendingHistoryItemRef, setPendingHistoryItem],
+  );
+
+  useInput((_input, key) => {
+    if (streamingState === StreamingState.Responding && key.escape) {
+      cancelRequest('Request cancelled.');
     }
   });
+
+  const { checkForLoop } = useLoopBreaker(streamingState, cancelRequest);
+
+  const onHistoryItemAdded = useCallback(
+    (item: HistoryItem) => {
+      checkForLoop(item);
+    },
+    [checkForLoop],
+  );
+
+  useEffect(() => {
+    setAddItemListener(onHistoryItemAdded);
+    return () => {
+      setAddItemListener(null);
+    };
+  }, [setAddItemListener, onHistoryItemAdded]);
 
   const prepareQueryForGemini = useCallback(
     async (
