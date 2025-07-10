@@ -6,10 +6,20 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as os from 'os';
+import * as fs from 'fs';
+import * as path from 'path';
 import { loadCliConfig } from './config.js';
 import { Settings } from './settings.js';
 import { Extension } from './extension.js';
 import * as ServerConfig from '@google/gemini-cli-core';
+
+vi.mock('fs', async (importOriginal) => {
+  const actualFs = await importOriginal<typeof fs>();
+  return {
+    ...actualFs,
+    existsSync: vi.fn(),
+  };
+});
 
 vi.mock('os', async (importOriginal) => {
   const actualOs = await importOriginal<typeof os>();
@@ -286,12 +296,18 @@ describe('Hierarchical Memory Loading (config.ts) - Placeholder Suite', () => {
         ],
       },
     ];
+
+    const cwd = process.cwd();
+    const rootGeminiMd = path.join(path.parse(cwd).root, 'GEMINI.md');
+    vi.mocked(fs.existsSync).mockImplementation((p) => p === rootGeminiMd);
+
     await loadCliConfig(settings, extensions, 'session-id');
     expect(ServerConfig.loadServerHierarchicalMemory).toHaveBeenCalledWith(
       expect.any(String),
       false,
       expect.any(Object),
       [
+        rootGeminiMd,
         '/path/to/ext1/GEMINI.md',
         '/path/to/ext3/context1.md',
         '/path/to/ext3/context2.md',

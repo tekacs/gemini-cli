@@ -23,6 +23,8 @@ import { Settings } from './settings.js';
 import { Extension, filterActiveExtensions } from './extension.js';
 import { getCliVersion } from '../utils/version.js';
 import { loadSandboxConfig } from './sandboxConfig.js';
+import * as fs from 'fs';
+import * as path from 'path';
 
 // Simple console logger for now - replace with actual logger if available
 const logger = {
@@ -180,6 +182,26 @@ async function parseArguments(): Promise<CliArgs> {
   return yargsInstance.argv;
 }
 
+function findHierarchicalGeminiMds(startPath: string): string[] {
+  const geminiMds: string[] = [];
+  let currentPath = startPath;
+
+  while (true) {
+    const geminiMdPath = path.join(currentPath, 'GEMINI.md');
+    if (fs.existsSync(geminiMdPath)) {
+      geminiMds.unshift(geminiMdPath);
+    }
+
+    const parentPath = path.dirname(currentPath);
+    if (parentPath === currentPath) {
+      break;
+    }
+    currentPath = parentPath;
+  }
+
+  return geminiMds;
+}
+
 // This function is now a thin wrapper around the server's implementation.
 // It's kept in the CLI for now as App.tsx directly calls it for memory refresh.
 // TODO: Consider if App.tsx should get memory via a server call or if Config should refresh itself.
@@ -194,13 +216,17 @@ export async function loadHierarchicalGeminiMemory(
       `CLI: Delegating hierarchical memory load to server for CWD: ${currentWorkingDirectory}`,
     );
   }
+
+  const hierarchicalMds = findHierarchicalGeminiMds(currentWorkingDirectory);
+  const allContextFiles = [...hierarchicalMds, ...extensionContextFilePaths];
+
   // Directly call the server function.
   // The server function will use its own homedir() for the global path.
   return loadServerHierarchicalMemory(
     currentWorkingDirectory,
     debugMode,
     fileService,
-    extensionContextFilePaths,
+    allContextFiles,
   );
 }
 
